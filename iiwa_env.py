@@ -53,6 +53,8 @@ class IIWAEnv():
 
         self.reset()
 
+        self.episode_length =2400
+        self.threshold =1e-4
 
     def reset(self):
          # randomly setting a valid target
@@ -75,6 +77,7 @@ class IIWAEnv():
         
         #reset time to 0
         self.steps=0
+        self.done =False
     
     # get the states of iiwa joint positions and velocities
     def getStates(self):
@@ -103,7 +106,22 @@ class IIWAEnv():
         self.steps=0
 
     def step(self,action):
-        pass
+        p.setJointMotorControlArray(self.iiwaId,jointIndices=[i for i in range(self.joint_num)], controlMode=p.POSITION_CONTROL, targetPositions = action)
+        p.stepSimulation()
+
+        state_vec = self.getStates()
+
+        current_eef_state = p.getLinkState(self.iiwaId,6)
+
+        reward = np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
+        np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5]))
+
+        if self.steps>=self.episode_length or reward<self.threshold:
+            self.done =True
+            
+        self.steps+=1
+
+        return state_vec, reward, self.done
 
     def close(self):
         p.disconnect()

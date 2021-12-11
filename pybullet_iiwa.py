@@ -40,7 +40,7 @@ for ii in range(10):
     for num in range(joint_num):
         p.resetJointState(iiwaId, num, target_joint_pos[num])
     target_eef_state = p.getLinkState(iiwaId,6)
-    p.resetBasePositionAndOrientation(goal_visualization_id, target_eef_state[4], target_eef_state[5])
+    p.resetBasePositionAndOrientation(goal_visualization_id, np.array(target_eef_state[4]), np.array(target_eef_state[5]))
 
     #randomly initialize to a valid state
     initial_joint_pos = np.random.uniform(joint_limit[:,0],joint_limit[:,1])
@@ -56,6 +56,15 @@ for ii in range(10):
         state_vec = np.array([joint_state[0:2] for joint_state in joint_states]).flatten()
 
         time.sleep(1./240.)
+
+        current_eef_state = p.getLinkState(iiwaId,6)
+        # seperate the position and orientation error for now
+        error_in_pose = np.linalg.norm(np.array(target_eef_state[4])-np.array(current_eef_state[4]))+\
+        np.linalg.norm(np.array(target_eef_state[5])-np.array(current_eef_state[5]))
+
+        if error_in_pose<1e-4:
+            break
+
 
 Pos, Orn = p.getBasePositionAndOrientation(iiwaId)
 
