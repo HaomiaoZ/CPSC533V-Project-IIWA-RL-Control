@@ -9,7 +9,7 @@ class IIWAEnv():
     A IIWA Arm to reach a spocific position and orientation with positon and torque control
 
     Observation
-    IIWA Arm 7 DOF joint position and velocity, joint position limits are included
+    IIWA Arm 7 DOF joint position and velocity, target end effector position and orientation (in quaternion for now)
 
     Action
     7 DOF position control for now (want to add torque control)
@@ -121,7 +121,7 @@ class IIWAEnv():
             
         self.steps+=1
 
-        return state_vec, reward, self.done
+        return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
 
     def close(self):
         p.disconnect()

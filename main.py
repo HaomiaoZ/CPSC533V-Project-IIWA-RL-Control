@@ -9,6 +9,6 @@ env = IIWAEnv()
 
 done = False
 while not done:
-    _, _ , done = env.step([1,1,1,1,1,1,1])
+    state, reward , done = env.step(np.array([1,1,1,1,1,1,1]))
 
 env.close()
