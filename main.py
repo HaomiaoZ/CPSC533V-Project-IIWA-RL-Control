@@ -3,7 +3,7 @@ import time
 import pybullet_data
 import numpy as np
 from iiwa_env import IIWAEnv
-
+from eval_policy import eval_policy
 
 import time
 
@@ -24,9 +24,16 @@ from pg_buffer import PGBuffer
 from collections import defaultdict
 
 from torch.utils.tensorboard import SummaryWriter
+
+# for storing model if time is needed
+from datetime import datetime
+
 #import PIL
 
 def main(args):
+
+    best_score =-np.inf
+
     # create environment 
     env = IIWAEnv()
     obs_dim = 21
@@ -175,6 +182,14 @@ def main(args):
             print('Epoch', epoch, vals)
             logs = defaultdict(lambda: [])
 
+            score = eval_policy(policy=ac, env='IIWA_Position', render=True)
+            if score > best_score:
+                best_score = score
+                torch.save(ac.state_dict(), "best_model_{}_with_PPO.pt".format('IIWA_Position'))
+                print('saving model.')
+            print("[TEST Epoch {}] [Average Reward {}]".format(epoch, score))
+            print('-'*10)
+
 
 
 if __name__ == '__main__':
@@ -183,11 +198,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--env', type=str, default='IIWA_Position', help='[CartPole-v0, LunarLander-v2, LunarLanderContinuous-v2, others]')
 
-    parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs to run')
+    parser.add_argument('--epochs', type=int, default=10, help='Number of epochs to run')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')
     parser.add_argument('--lam', type=float, default=0.97, help='GAE-lambda factor')
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--steps_per_epoch', type=int, default=2400, help='Number of env steps to run during optimizations')
+    parser.add_argument('--steps_per_epoch', type=int, default=12000, help='Number of env steps to run during optimizations')
     parser.add_argument('--max_ep_len', type=int, default=2400)
 
     parser.add_argument('--train_pi_iters', type=int, default=4)

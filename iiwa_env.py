@@ -2,6 +2,7 @@ import pybullet as p
 import time
 import pybullet_data
 import numpy as np
+from pybullet_utils import bullet_client as bc
 
 class IIWAEnv():
     '''
@@ -27,28 +28,31 @@ class IIWAEnv():
     '''
 
     #TODO add control mode
-    def __init__(self):
+    def __init__(self,render=False):
         #connect to pybullet
-        physicsClient = p.connect(p.GUI)#or p.DIRECT for non-graphical version
-        p.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
-        p.setGravity(0,0,-9.81)
+        if render:
+            self.physicsClient = bc.BulletClient(connection_mode=p.GUI)#P.GUI or p.DIRECT for non-graphical version
+        else:
+            self.physicsClient = bc.BulletClient(connection_mode=p.DIRECT)#P.GUI or p.DIRECT for non-graphical version
+        self.physicsClient.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
+        self.physicsClient.setGravity(0,0,-9.81)
 
         # create goal visualization
-        goal_visualization_shape_id = p.createVisualShape(p.GEOM_CAPSULE, radius =0.1, length=0.2, rgbaColor =[0,1,0,0.4], specularColor=[1, 1, 1])
-        self.goal_visualization_id =p.createMultiBody(baseVisualShapeIndex=goal_visualization_shape_id)
+        goal_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_CAPSULE, radius =0.1, length=0.2, rgbaColor =[0,1,0,0.4], specularColor=[1, 1, 1])
+        self.goal_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_visualization_shape_id)
 
         # initalize robot
         startPos = [0,0,0]
-        startOrientation = p.getQuaternionFromEuler([0,0,0])
-        self.iiwaId = p.loadURDF("kuka_iiwa/model.urdf",startPos, startOrientation, useFixedBase=True)# there are other configurations under this directory as well
+        startOrientation = self.physicsClient.getQuaternionFromEuler([0,0,0])
+        self.iiwaId = self.physicsClient.loadURDF("kuka_iiwa/model.urdf",startPos, startOrientation, useFixedBase=True)# there are other configurations under this directory as well
         
         # get joint number 
-        self.joint_num = p.getNumJoints(self.iiwaId)
+        self.joint_num = self.physicsClient.getNumJoints(self.iiwaId)
         
         # getting lower and upper joint limit
         self.joint_limit =np.zeros((self.joint_num,2))
         for i in range(self.joint_num):
-            joint_info = p.getJointInfo(self.iiwaId,i)
+            joint_info = self.physicsClient.getJointInfo(self.iiwaId,i)
             self.joint_limit[i]= np.array(joint_info[8:10])
 
         self.reset()
@@ -63,13 +67,13 @@ class IIWAEnv():
         self.setPositionStates(target_joint_pos)
         
         # get target end effector state in task space
-        target_eef_states = p.getLinkState(self.iiwaId,6)
+        target_eef_states = self.physicsClient.getLinkState(self.iiwaId,6)
 
         self.target_eef_positions=np.array(target_eef_states[4])
         self.target_eef_orientations = np.array(target_eef_states[5])
 
         # set visualization to the location 
-        p.resetBasePositionAndOrientation(self.goal_visualization_id, self.target_eef_positions, self.target_eef_orientations)
+        self.physicsClient.resetBasePositionAndOrientation(self.goal_visualization_id, self.target_eef_positions, self.target_eef_orientations)
 
         #randomly initialize robot to a valid state
         initial_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
@@ -83,14 +87,14 @@ class IIWAEnv():
     
     # get the states of iiwa joint positions and velocities
     def getStates(self):
-        joint_states= p.getJointStates(self.iiwaId,jointIndices=[i for i in range(self.joint_num)])
+        joint_states= self.physicsClient.getJointStates(self.iiwaId,jointIndices=[i for i in range(self.joint_num)])
         state_vec = np.array([joint_state[0:2] for joint_state in joint_states]).flatten()
         return state_vec
     
     # reset joint position state to given vectors, velocities are set to 0
     def setPositionStates(self,states):
         for num in range(self.joint_num):
-            p.resetJointState(self.iiwaId, num, states[num])
+            self.physicsClient.resetJointState(self.iiwaId, num, states[num])
     
     def getEEFPose(self):
         pass
@@ -108,26 +112,33 @@ class IIWAEnv():
         self.steps=0
 
     def step(self,action):
-        p.setJointMotorControlArray(self.iiwaId,jointIndices=[i for i in range(self.joint_num)], controlMode=p.POSITION_CONTROL, targetPositions = action)
-        p.stepSimulation()
+        self.physicsClient.setJointMotorControlArray(self.iiwaId,jointIndices=[i for i in range(self.joint_num)], controlMode=p.POSITION_CONTROL, targetPositions = action)
+        self.physicsClient.stepSimulation()
 
         state_vec = self.getStates()
 
-        current_eef_state = p.getLinkState(self.iiwaId,6)
+        current_eef_state = self.physicsClient.getLinkState(self.iiwaId,6)
 
         # penalize error
         reward =-( np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
         np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5])) )
+        
+        self.steps+=1
 
+        # test termination condition
+        if self.steps ==2400:
+            print("Yes")
+
+        if abs(reward)<abs(self.threshold):
+            print("No")
+            
         if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
             self.done =True
-            
-        self.steps+=1
 
         return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
 
     def close(self):
-        p.disconnect()
+        self.physicsClient.disconnect()
 
 
 
