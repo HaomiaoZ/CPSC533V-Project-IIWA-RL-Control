@@ -45,7 +45,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     env = IIWAEnv()
-    model = ActorCritic(21, 7, False).to(args.device)
+    model = ActorCritic(21, 7, False).to(device)
     model.load_state_dict(torch.load(args.model_path))
     model = model.to(device)
     env.close()
