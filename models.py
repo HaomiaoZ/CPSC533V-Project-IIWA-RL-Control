@@ -11,7 +11,7 @@ class Network(nn.Module):
         super().__init__()
         # NOTE: feel free to experiment with this network
         self.linin = nn.Linear(in_dim, 128)
-        self.hd = nn.Linear(128,128)
+        #self.hd = nn.Linear(128,128)
         self.linout = nn.Linear(128, out_dim)
 
         # initialize weights and bias to 0 in the last layer.
@@ -29,8 +29,8 @@ class Network(nn.Module):
         """
         x = self.linin(inputs)
         x = F.relu(x)
-        x= self.hd(x)
-        x = F.relu(x)
+        #x= self.hd(x)
+        #x = F.relu(x)
         x = self.linout(x)
         return x
 
