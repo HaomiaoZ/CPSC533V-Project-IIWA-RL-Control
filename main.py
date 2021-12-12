@@ -174,7 +174,7 @@ def main(args):
         # Perform VPG update!
         update()
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             vals = {key: np.mean(val) for key, val in logs.items()}
             for key in vals:
                 writer.add_scalar(key, vals[key], epoch)
@@ -182,13 +182,14 @@ def main(args):
             print('Epoch', epoch, vals)
             logs = defaultdict(lambda: [])
 
-            score = eval_policy(policy=ac, env='IIWA_Position', render=True)
-            if score > best_score:
-                best_score = score
-                torch.save(ac.state_dict(), "best_model_{}_with_PPO.pt".format('IIWA_Position'))
-                print('saving model.')
-            print("[TEST Epoch {}] [Average Reward {}]".format(epoch, score))
-            print('-'*10)
+            if(epoch %100 == 0):
+                score = eval_policy(policy=ac, env='IIWA_Position', num_test_episodes=10, render=False)
+                if score > best_score:
+                    best_score = score
+                    torch.save(ac.state_dict(), "best_model_{}_with_PPO.pt".format('IIWA_Position'))
+                    print('saving model.')
+                print("[TEST Epoch {}] [Average Reward {}]".format(epoch, score))
+                print('-'*10)
 
 
 
@@ -202,8 +203,8 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')
     parser.add_argument('--lam', type=float, default=0.97, help='GAE-lambda factor')
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--steps_per_epoch', type=int, default=12000, help='Number of env steps to run during optimizations')
-    parser.add_argument('--max_ep_len', type=int, default=2400)
+    parser.add_argument('--steps_per_epoch', type=int, default=300, help='Number of env steps to run during optimizations')
+    parser.add_argument('--max_ep_len', type=int, default=300)
 
     parser.add_argument('--train_pi_iters', type=int, default=4)
     parser.add_argument('--train_v_iters', type=int, default=40)

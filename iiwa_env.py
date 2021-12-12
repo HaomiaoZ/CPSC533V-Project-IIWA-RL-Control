@@ -34,6 +34,9 @@ class IIWAEnv():
             self.physicsClient = bc.BulletClient(connection_mode=p.GUI)#P.GUI or p.DIRECT for non-graphical version
         else:
             self.physicsClient = bc.BulletClient(connection_mode=p.DIRECT)#P.GUI or p.DIRECT for non-graphical version
+        # what Hz is simulated and controlled
+        self.Hz = 30.
+        self.physicsClient.setTimeStep(1./self.Hz)
         self.physicsClient.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         self.physicsClient.setGravity(0,0,-9.81)
 
@@ -57,7 +60,9 @@ class IIWAEnv():
 
         self.reset()
 
-        self.episode_length =2400
+        # 10s of simulation
+        self.episode_length =self.Hz*10
+        
         self.threshold =1e-4
 
     def reset(self):
@@ -124,21 +129,20 @@ class IIWAEnv():
         np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5])) )
         
         self.steps+=1
-
+        '''
         # test termination condition
         if self.steps ==2400:
             print("Yes")
 
         if abs(reward)<abs(self.threshold):
             print("No")
-            
+        '''
         if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
             self.done =True
-        
-        # reach target 500 
-        if abs(reward)<abs(self.threshold):
-            reward =500
-            
+            # reach target 1000 
+            if abs(reward)<abs(self.threshold):
+                reward =1000
+
         return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
 
     def close(self):
