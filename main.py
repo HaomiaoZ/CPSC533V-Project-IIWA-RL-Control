@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--env', type=str, default='IIWA_Position', help='[CartPole-v0, LunarLander-v2, LunarLanderContinuous-v2, others]')
 
-    parser.add_argument('--epochs', type=int, default=10, help='Number of epochs to run')
+    parser.add_argument('--epochs', type=int, default=10000, help='Number of epochs to run')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')
     parser.add_argument('--lam', type=float, default=0.97, help='GAE-lambda factor')
     parser.add_argument('--seed', type=int, default=42)
@@ -212,7 +212,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--psi_mode', type=str, default='gae', help='value to modulate logp gradient with [future_return, gae]')
     parser.add_argument('--loss_mode', type=str, default='ppo', help='Loss mode [vpg, ppo]')
-    parser.add_argument('--clip_ratio', type=float, default=0.1, help='PPO clipping ratio')
+    parser.add_argument('--clip_ratio', type=float, default=0.2, help='PPO clipping ratio')
 
     parser.add_argument('--render_interval', type=int, default=100, help='render every N')
     parser.add_argument('--log_interval', type=int, default=100, help='log every N')

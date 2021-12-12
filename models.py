@@ -3,14 +3,16 @@ import torch
 import torch.nn as nn
 from torch.distributions.normal import Normal
 from torch.distributions.categorical import Categorical
+import torch.nn.functional as F
 
 class Network(nn.Module):
     """Network definition to be used for actor and critic networks"""
     def __init__(self, in_dim, out_dim):
         super().__init__()
         # NOTE: feel free to experiment with this network
-        self.linin = nn.Linear(in_dim, 200)
-        self.linout = nn.Linear(200, out_dim)
+        self.linin = nn.Linear(in_dim, 128)
+        self.hd = nn.Linear(128,128)
+        self.linout = nn.Linear(128, out_dim)
 
         # initialize weights and bias to 0 in the last layer.
         # this ensures the actors starts out completely random in the beginning, and that the value function starts at 0
@@ -26,7 +28,9 @@ class Network(nn.Module):
             torch.Tensor:  (BS, out_dim)
         """
         x = self.linin(inputs)
-        x = torch.relu(x)
+        x = F.relu(x)
+        x= self.hd(x)
+        x = F.relu(x)
         x = self.linout(x)
         return x
 

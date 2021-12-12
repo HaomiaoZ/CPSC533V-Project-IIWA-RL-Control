@@ -134,7 +134,11 @@ class IIWAEnv():
             
         if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
             self.done =True
-
+        
+        # reach target 500 
+        if abs(reward)<abs(self.threshold):
+            reward =500
+            
         return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
 
     def close(self):
