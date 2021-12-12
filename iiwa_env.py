@@ -78,6 +78,8 @@ class IIWAEnv():
         #reset time to 0
         self.steps=0
         self.done =False
+
+        return np.concatenate((self.getStates(),self.target_eef_positions, self.target_eef_orientations))
     
     # get the states of iiwa joint positions and velocities
     def getStates(self):
@@ -113,10 +115,11 @@ class IIWAEnv():
 
         current_eef_state = p.getLinkState(self.iiwaId,6)
 
-        reward = np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
-        np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5]))
+        # penalize error
+        reward =-( np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
+        np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5])) )
 
-        if self.steps>=self.episode_length or reward<self.threshold:
+        if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
             self.done =True
             
         self.steps+=1
