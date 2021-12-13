@@ -10,6 +10,9 @@ p.setGravity(0,0,-9.81)
 goal_visualization_shape_id = p.createVisualShape(p.GEOM_CAPSULE, radius =0.1, length=0.2, rgbaColor =[0,1,0,0.4], specularColor=[1, 1, 1])
 goal_visualization_id =p.createMultiBody(baseVisualShapeIndex=goal_visualization_shape_id)
 
+goal_range_visualization_shape_id = p.createVisualShape(p.GEOM_BOX, halfExtents = [0.075,0.2,0.2], rgbaColor =[1,0,0,0.1], specularColor=[1, 1, 1])
+goal_range_visualization_id =p.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
+
 #planeId = p.loadURDF("plane.urdf")
 startPos = [0,0,0]
 startOrientation = p.getQuaternionFromEuler([0,0,0])
@@ -21,6 +24,7 @@ iiwaId = p.loadURDF("kuka_iiwa/model.urdf",startPos, startOrientation,useFixedBa
 
 p.resetBasePositionAndOrientation(iiwaId, startPos, startOrientation)
 p.resetBasePositionAndOrientation(goal_visualization_id, [0,0,1], startOrientation)
+p.resetBasePositionAndOrientation(goal_range_visualization_id, [0.45+0.075,0,0.4], startOrientation)
 
 # get joint limit
 joint_num = p.getNumJoints(iiwaId)
