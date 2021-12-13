@@ -33,9 +33,9 @@ from datetime import datetime
 def main(args):
 
     best_score =-np.inf
-
+    
     # create environment 
-    env = IIWAEnv()
+    env = IIWAEnv(target_type=args.target_type)
     obs_dim = 21
     discrete =False
     act_dim = 7
@@ -183,10 +183,10 @@ def main(args):
             logs = defaultdict(lambda: [])
 
             if(epoch %100 == 0):
-                score = eval_policy(policy=ac, env='IIWA_Position', num_test_episodes=10, render=False)
+                score = eval_policy(policy=ac, target_type = args.target_type, env='IIWA_Position', num_test_episodes=10, render=False)
                 if score > best_score:
                     best_score = score
-                    torch.save(ac.state_dict(), "best_model_{}_with_PPO.pt".format('IIWA_Position'))
+                    torch.save(ac.state_dict(), "best_model_{}_with_PPO_{}_Target.pt".format('IIWA_Position', args.target_type))
                     print('saving model.')
                 print("[TEST Epoch {}] [Average Reward {}]".format(epoch, score))
                 print('-'*10)
@@ -198,6 +198,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--env', type=str, default='IIWA_Position', help='[CartPole-v0, LunarLander-v2, LunarLanderContinuous-v2, others]')
+    parser.add_argument('--target_type', type=str, default=None, help='[Point, Cube, Random]')
 
     parser.add_argument('--epochs', type=int, default=10000, help='Number of epochs to run')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')

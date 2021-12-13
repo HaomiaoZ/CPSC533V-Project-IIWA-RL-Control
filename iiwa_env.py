@@ -28,7 +28,10 @@ class IIWAEnv():
     '''
 
     #TODO add control mode
-    def __init__(self,render=False):
+    def __init__(self, target_type, render=False):
+        if target_type==None:
+            raise Exception('Invalid target_type option')
+
         #connect to pybullet
         if render:
             self.physicsClient = bc.BulletClient(connection_mode=p.GUI)#P.GUI or p.DIRECT for non-graphical version
@@ -36,6 +39,9 @@ class IIWAEnv():
             self.physicsClient = bc.BulletClient(connection_mode=p.DIRECT)#P.GUI or p.DIRECT for non-graphical version
         # what Hz is simulated and controlled
         self.Hz = 30.
+
+        #what type of target is training for 
+        self.target_type = target_type
         self.physicsClient.setTimeStep(1./self.Hz)
         self.physicsClient.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         self.physicsClient.setGravity(0,0,-9.81)
@@ -62,27 +68,41 @@ class IIWAEnv():
 
         # 10s of simulation
         self.episode_length =self.Hz*10
-        
-        self.threshold =1e-4
+
+        self.threshold =1e-1
 
     def reset(self):
-         # randomly setting a valid target
-        target_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
+        if self.target_type=='Random':
+            # randomly setting a valid target
+            target_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
 
-        self.setPositionStates(target_joint_pos)
+            self.setPositionStates(target_joint_pos)
+            
+            # get target end effector state in task space
+            target_eef_states = self.physicsClient.getLinkState(self.iiwaId,6)
+
+            self.target_eef_positions=np.array(target_eef_states[4])
+            self.target_eef_orientations = np.array(target_eef_states[5])
+
+            # set visualization to the location 
+            self.physicsClient.resetBasePositionAndOrientation(self.goal_visualization_id, self.target_eef_positions, self.target_eef_orientations)
+
+            #randomly initialize robot to a valid state
+            initial_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
+            
+        elif self.target_type=='Point':
+            # find a fixed target position
+            # constant are from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/inverse_kinematics.py
+            self.target_eef_positions = np.array([0.2, 0.3, 0.7])
+            self.target_eef_orientations = np.array(self.physicsClient.getQuaternionFromEuler([0,0,0])).flatten()
+            
+            #randomly initialize around 0 for all joints
+            initial_joint_pos = np.random.uniform(self.joint_limit[:,0]/30,self.joint_limit[:,1]/30)
         
-        # get target end effector state in task space
-        target_eef_states = self.physicsClient.getLinkState(self.iiwaId,6)
-
-        self.target_eef_positions=np.array(target_eef_states[4])
-        self.target_eef_orientations = np.array(target_eef_states[5])
+        self.setPositionStates(initial_joint_pos)
 
         # set visualization to the location 
         self.physicsClient.resetBasePositionAndOrientation(self.goal_visualization_id, self.target_eef_positions, self.target_eef_orientations)
-
-        #randomly initialize robot to a valid state
-        initial_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
-        self.setPositionStates(initial_joint_pos)
         
         #reset time to 0
         self.steps=0
@@ -124,9 +144,10 @@ class IIWAEnv():
 
         current_eef_state = self.physicsClient.getLinkState(self.iiwaId,6)
 
-        # penalize error
+        # penalize error in orientation and position
+        # for orientaion, if the difference between two quaternion is [0,0,0,1], means those two are aligned frame
         reward =-( np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
-        np.linalg.norm(np.array(self.target_eef_orientations)-np.array(current_eef_state[5])) )
+        np.linalg.norm(np.array(self.physicsClient.getDifferenceQuaternion(self.target_eef_orientations,current_eef_state[5]))-np.array([0,0,0,1])) )
         
         self.steps+=1
         '''
@@ -139,9 +160,9 @@ class IIWAEnv():
         '''
         if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
             self.done =True
-            # reach target 1000 
+            # reach target 500 
             if abs(reward)<abs(self.threshold):
-                reward =1000
+                reward =500
 
         return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
 

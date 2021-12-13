@@ -5,8 +5,8 @@ from iiwa_env import IIWAEnv
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def eval_policy(policy, env='IIWA_Position', num_test_episodes=10, render=False, verbose=False):
-    test_env = IIWAEnv(render)
+def eval_policy(policy, target_type, env='IIWA_Position', num_test_episodes=10, render=False, verbose=False):
+    test_env = IIWAEnv(render=render,target_type=target_type)
     test_rewards = []
     for i in range(num_test_episodes):
         state = test_env.reset()
@@ -43,11 +43,13 @@ if __name__ == "__main__":
     parser.add_argument('--env', default=None, type=str,
         help='Name of the environment.')
     
+    parser.add_argument('--target_type', type=str, default=None, help='[Point, Cube, Random]')
+    parser.add_argument('--num_test_episodes', type=int, default=10, help='number of test episode')
     args = parser.parse_args()
-    env = IIWAEnv()
+    env = IIWAEnv(target_type=args.target_type)
     model = ActorCritic(21, 7, False).to(device)
     model.load_state_dict(torch.load(args.model_path))
     model = model.to(device)
     env.close()
 
-    eval_policy(policy=model, env=args.env, render=True, verbose=True)
+    eval_policy(policy=model, env=args.env, render=True, target_type = args.target_type, verbose=True,num_test_episodes=args.num_test_episodes )

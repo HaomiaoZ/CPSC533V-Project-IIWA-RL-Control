@@ -34,18 +34,35 @@ for i in range(joint_num):
 
 target_joint_pos = np.random.uniform(joint_limit[:,0],joint_limit[:,1])
 for ii in range(10):
-
+    
     #find target position in joint space to ensure valid end effector position, find end effector position
     target_joint_pos = np.random.uniform(joint_limit[:,0],joint_limit[:,1])
     for num in range(joint_num):
         p.resetJointState(iiwaId, num, target_joint_pos[num])
     target_eef_state = p.getLinkState(iiwaId,6)
+    target_eef_pos =np.array(target_eef_state[4]).flatten()
+    target_eef_ori =np.array(target_eef_state[5]).flatten()
     p.resetBasePositionAndOrientation(goal_visualization_id, np.array(target_eef_state[4]), np.array(target_eef_state[5]))
-
+    
     #randomly initialize to a valid state
     initial_joint_pos = np.random.uniform(joint_limit[:,0],joint_limit[:,1])
+
+    #deterministic inialize a valid state
+    initial_joint_pos = np.random.uniform(joint_limit[:,0]/30,joint_limit[:,1]/30)
     for num in range(joint_num):
         p.resetJointState(iiwaId, num, initial_joint_pos[num])
+    
+    # find a fixed target position
+    # constant are from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/inverse_kinematics.py
+    target_eef_pos = np.array([0.2, 0.3, 0.7])
+    target_eef_ori = np.array(p.getQuaternionFromEuler([0,0,0])).flatten()
+    
+    p.resetBasePositionAndOrientation(goal_visualization_id, target_eef_pos, target_eef_ori)
+    target_joint_pos = p.calculateInverseKinematics(iiwaId,6,target_eef_pos,target_eef_ori,\
+        [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05],\
+          [.967, 2, 2.96, 2.29, 2.96, 2.09, 3.05],\
+              [5.8, 4, 5.8, 4, 5.8, 4, 6],\
+                [0, 0, 0, 0.5 * np.pi, 0, -np.pi * 0.5 * 0.66, 0])
     
     for i in range (1000):
         p.setJointMotorControlArray(iiwaId,jointIndices=[i for i in range(joint_num)], controlMode=p.POSITION_CONTROL, targetPositions = target_joint_pos)
@@ -59,10 +76,10 @@ for ii in range(10):
 
         current_eef_state = p.getLinkState(iiwaId,6)
         # seperate the position and orientation error for now
-        error_in_pose = np.linalg.norm(np.array(target_eef_state[4])-np.array(current_eef_state[4]))+\
-        np.linalg.norm(np.array(target_eef_state[5])-np.array(current_eef_state[5]))
+        error_in_pose = np.linalg.norm(np.array(target_eef_pos)-np.array(current_eef_state[4]))+\
+        np.linalg.norm(np.array(p.getDifferenceQuaternion(target_eef_ori,current_eef_state[5]))-np.array([0,0,0,1]))
 
-        if error_in_pose<1e-4:
+        if error_in_pose<1e-1:
             break
 
 
