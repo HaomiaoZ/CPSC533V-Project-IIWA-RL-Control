@@ -24,7 +24,7 @@ iiwaId = p.loadURDF("kuka_iiwa/model.urdf",startPos, startOrientation,useFixedBa
 
 p.resetBasePositionAndOrientation(iiwaId, startPos, startOrientation)
 p.resetBasePositionAndOrientation(goal_visualization_id, [0,0,1], startOrientation)
-p.resetBasePositionAndOrientation(goal_range_visualization_id, [0.45+0.075,0,0.4], startOrientation)
+p.resetBasePositionAndOrientation(goal_range_visualization_id, [0.6,0,0.4], startOrientation)
 
 # get joint limit
 joint_num = p.getNumJoints(iiwaId)
@@ -58,8 +58,12 @@ for ii in range(10):
     
     # find a fixed target position
     # constant are from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/inverse_kinematics.py
-    target_eef_pos = np.array([0.2, 0.3, 0.7])
-    target_eef_ori = np.array(p.getQuaternionFromEuler([0,0,0])).flatten()
+    target_eef_pos = np.array([0.625, -0.0, 0.5])
+    target_eef_ori = np.array(p.getQuaternionFromEuler([0,np.pi/2,0])).flatten()
+
+    # randomize orientation by randomize euler angle
+    target_eef_pos = np.random.uniform(np.array([0.6,0,0.4])-np.array([0.075,0.2,0.2]),np.array([0.6,0,0.4])+np.array([0.075,0.2,0.2]))
+    target_eef_ori = np.array(p.getQuaternionFromEuler(np.random.uniform(np.zeros(3),np.ones(3)*np.pi))).flatten()
     
     p.resetBasePositionAndOrientation(goal_visualization_id, target_eef_pos, target_eef_ori)
     target_joint_pos = p.calculateInverseKinematics(iiwaId,6,target_eef_pos,target_eef_ori,\

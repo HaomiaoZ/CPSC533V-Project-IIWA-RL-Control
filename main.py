@@ -198,7 +198,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--env', type=str, default='IIWA_Position', help='[CartPole-v0, LunarLander-v2, LunarLanderContinuous-v2, others]')
-    parser.add_argument('--target_type', type=str, default=None, help='[Point, Cube, Random]')
+    parser.add_argument('--target_type', type=str, default=None, help='[Point, Box, Random]')
 
     parser.add_argument('--epochs', type=int, default=10000, help='Number of epochs to run')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor')

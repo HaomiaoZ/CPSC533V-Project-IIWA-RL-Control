@@ -50,6 +50,13 @@ class IIWAEnv():
         goal_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_CAPSULE, radius =0.1, length=0.2, rgbaColor =[0,1,0,0.4], specularColor=[1, 1, 1])
         self.goal_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_visualization_shape_id)
 
+        # since no need to move the range viz, don't add to field
+        if target_type=="Box":
+            self.box_half_extents = np.array([0.075,0.2,0.2])
+            self.box_center = np.array([0.6,0,0.4])
+            goal_range_visualization_shape_id = p.createVisualShape(p.GEOM_BOX, halfExtents = self.box_half_extents, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
+            goal_range_visualization_id =p.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
+
         # initalize robot
         startPos = [0,0,0]
         startOrientation = self.physicsClient.getQuaternionFromEuler([0,0,0])
@@ -64,15 +71,15 @@ class IIWAEnv():
             joint_info = self.physicsClient.getJointInfo(self.iiwaId,i)
             self.joint_limit[i]= np.array(joint_info[8:10])
 
-        self.reset()
-
         # 10s of simulation
         self.episode_length =self.Hz*10
 
-        self.threshold =1e-1
+        self.pose_error_threshold =1e-1
+
+        self.reset()
 
     def reset(self):
-        if self.target_type=='Random':
+        if self.target_type=="Random":
             # randomly setting a valid target
             target_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
 
@@ -84,21 +91,34 @@ class IIWAEnv():
             self.target_eef_positions=np.array(target_eef_states[4])
             self.target_eef_orientations = np.array(target_eef_states[5])
 
-            # set visualization to the location 
-            self.physicsClient.resetBasePositionAndOrientation(self.goal_visualization_id, self.target_eef_positions, self.target_eef_orientations)
-
             #randomly initialize robot to a valid state
             initial_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
             
-        elif self.target_type=='Point':
+        elif self.target_type=="Point":
             # find a fixed target position
             # constant are from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/inverse_kinematics.py
             self.target_eef_positions = np.array([0.2, 0.3, 0.7])
             self.target_eef_orientations = np.array(self.physicsClient.getQuaternionFromEuler([0,0,0])).flatten()
             
             #randomly initialize around 0 for all joints
-            initial_joint_pos = np.random.uniform(self.joint_limit[:,0]/30,self.joint_limit[:,1]/30)
+            initial_joint_pos = np.random.uniform(np.deg2rad(-np.ones(self.joint_num)*5),np.deg2rad(np.ones(self.joint_num)*5))
         
+        elif self.target_type=="Box":
+            valid_position=False
+            while not valid_position:
+                # randomize orientation by randomize euler angle
+                target_eef_pos = np.random.uniform(self.box_center-self.box_half_extents,self.box_center+self.box_half_extents)
+                target_eef_ori = np.array(p.getQuaternionFromEuler(np.random.uniform(np.zeros(3),np.ones(3)*2*np.pi))).flatten()
+                valid_position = self.__is_valid__(target_eef_pos,target_eef_ori)
+
+            self.target_eef_positions = target_eef_pos
+            self.target_eef_orientations = target_eef_ori
+
+            #randomly initialize around 0 for all joints
+            initial_joint_pos = np.random.uniform(np.deg2rad(-np.ones(self.joint_num)*5),np.deg2rad(np.ones(self.joint_num)*5))
+
+        else:
+            raise Exception("Target type is not defined or incorrect")
         self.setPositionStates(initial_joint_pos)
 
         # set visualization to the location 
@@ -121,6 +141,33 @@ class IIWAEnv():
         for num in range(self.joint_num):
             self.physicsClient.resetJointState(self.iiwaId, num, states[num])
     
+    # is valid can only be used during reset since it will set velocity to 0!
+    def __is_valid__(self, target_eef_pos,target_eef_ori):
+
+        target_joint_pos = self.physicsClient.calculateInverseKinematics(self.iiwaId,6,target_eef_pos,target_eef_ori,\
+        [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05],\
+          [.967, 2, 2.96, 2.29, 2.96, 2.09, 3.05],\
+              [5.8, 4, 5.8, 4, 5.8, 4, 6],\
+                [0, 0, 0, 0.5 * np.pi, 0, -np.pi * 0.5 * 0.66, 0])
+        
+        cur_joint_states = self.getStates()
+        # getting every second element in state, which is current position
+        cur_joint_pos = cur_joint_states[::2]
+
+        # set to target position and calculate error
+        self.setPositionStates(target_joint_pos)
+
+        current_eef_state = self.physicsClient.getLinkState(self.iiwaId,6)
+
+        error_in_pose =np.linalg.norm(np.array(target_eef_pos)-np.array(current_eef_state[4]))+\
+        np.linalg.norm(np.array(self.physicsClient.getDifferenceQuaternion(target_eef_ori,current_eef_state[5]))-np.array([0,0,0,1]))
+
+        #reser to positions before calling this function
+        self.setPositionStates(cur_joint_pos)
+
+        # check whether it is reachable
+        return error_in_pose<self.pose_error_threshold
+
     def getEEFPose(self):
         pass
         
@@ -155,13 +202,13 @@ class IIWAEnv():
         if self.steps ==2400:
             print("Yes")
 
-        if abs(reward)<abs(self.threshold):
+        if abs(reward)<abs(self.pose_error_threshold):
             print("No")
         '''
-        if self.steps>=self.episode_length or abs(reward)<abs(self.threshold):
+        if self.steps>=self.episode_length or abs(reward)<abs(self.pose_error_threshold):
             self.done =True
             # reach target 500 
-            if abs(reward)<abs(self.threshold):
+            if abs(reward)<abs(self.pose_error_threshold):
                 reward =500
 
         return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
