@@ -14,7 +14,7 @@ def eval_policy(policy, target_type, env='IIWA_Position', num_test_episodes=10, 
         while True:
             state = torch.tensor([state], device=device, dtype=torch.float32)
             action, _, _ = policy.step(torch.as_tensor(state, dtype=torch.float32).to(device))
-            next_state, reward, done= test_env.step(action.flatten())
+            next_state, reward, done,_= test_env.step(action.flatten())
             
             '''
             if render:
