@@ -1,3 +1,5 @@
+# a demo on how to import elements and calculate elements for iiwa_env
+# A test ground for iiwa_env
 import pybullet as p
 import time
 import pybullet_data
