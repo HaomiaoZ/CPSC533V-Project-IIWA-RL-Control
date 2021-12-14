@@ -64,12 +64,14 @@ class IIWAEnvGym(gym.Env):
     # They must be gym.spaces objects
     # IIWA 14 R820 model
     # TODO: figure out how to limit velocity in simulation, currently contorl mode will not consider that in pybullet (double check)
-    self.action_space = spaces.Box(low=self.joint_position_limit[:,0], high=self.joint_position_limit[:,1], dtype = np.float64)
+    # normalize the action space
+    self.action_space = spaces.Box(low=-1, high=1,shape = (self.joint_num,), dtype = np.float64)
     self.observation_space = spaces.Box(low=np.concatenate((self.joint_position_limit[:,0],-self.joint_velocity_limit*10,np.array([-1,-1,-0.3]),-np.ones(4))),\
          high=np.concatenate((self.joint_position_limit[:,1],self.joint_velocity_limit*10,np.array([1,1,1.5]),np.ones(4))),\
               dtype=np.float64)
 
   def step(self, action):
+    action =np.multiply(action, self.joint_position_limit[:,1])
     self.physicsClient.setJointMotorControlArray(self.iiwaId,jointIndices=[i for i in range(self.joint_num)], controlMode=p.POSITION_CONTROL, targetPositions = action)
     self.physicsClient.stepSimulation()
 
