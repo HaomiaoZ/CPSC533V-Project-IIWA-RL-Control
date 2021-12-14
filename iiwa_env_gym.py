@@ -6,6 +6,7 @@ import time
 import pybullet_data
 import numpy as np
 from pybullet_utils import bullet_client as bc
+from torch.nn.functional import normalize
 
 class IIWAEnvGym(gym.Env):
   """Custom Environment that follows gym interface"""
@@ -64,11 +65,14 @@ class IIWAEnvGym(gym.Env):
     # They must be gym.spaces objects
     # IIWA 14 R820 model
     # TODO: figure out how to limit velocity in simulation, currently contorl mode will not consider that in pybullet (double check)
-    # normalize the action space
+    # normalize the action space and observation space
     self.action_space = spaces.Box(low=-1, high=1,shape = (self.joint_num,), dtype = np.float64)
-    self.observation_space = spaces.Box(low=np.concatenate((self.joint_position_limit[:,0],-self.joint_velocity_limit*10,np.array([-1,-1,-0.3]),-np.ones(4))),\
+    self.observation_space = spaces.Box(low=-1, high=1, shape =(len(self.joint_position_limit[:,0])*2+7,),dtype =np.float64)
+    '''
+    self.observation_space = spaces.Box(low=np.concatenate((self.joint_position_limit[:,0],-self.joint_velocity_limit*10,np.array([-1,-1,-1.5]),-np.ones(4))),\
          high=np.concatenate((self.joint_position_limit[:,1],self.joint_velocity_limit*10,np.array([1,1,1.5]),np.ones(4))),\
               dtype=np.float64)
+    '''
 
   def step(self, action):
     action =np.multiply(action, self.joint_position_limit[:,1])
@@ -98,8 +102,8 @@ class IIWAEnvGym(gym.Env):
         # reach target 500 
         if abs(reward)<abs(self.pose_error_threshold):
             reward =500
-
-    return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done,{}
+    observation = self.__normalize_observation__(np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)))
+    return observation, reward, self.done,{}
 
   def reset(self):
     if self.target_type=="Random":
@@ -152,7 +156,7 @@ class IIWAEnvGym(gym.Env):
     self.steps=0
     self.done =False
 
-    observation = np.concatenate((self.getStates(),self.target_eef_positions, self.target_eef_orientations))
+    observation = self.__normalize_observation__(np.concatenate((self.getStates(),self.target_eef_positions, self.target_eef_orientations)))
     return observation  # reward, done, info can't be included
 
   # thanks to https://www.etedal.net/2020/04/pybullet-panda_2.html 
@@ -224,3 +228,12 @@ class IIWAEnvGym(gym.Env):
 
     # check whether it is reachable
     return error_in_pose<self.pose_error_threshold
+
+  # normalize state+position and orientation of goal to observation lie between [-1 to 1] need to normalize joint position, velocity and z position
+  def __normalize_observation__(self,observation):
+    observation[0:self.joint_num] = np.divide(observation[0:self.joint_num],self.joint_position_limit[:,1])
+    observation[self.joint_num:self.joint_num*2] = np.divide(observation[self.joint_num:self.joint_num*2],self.joint_velocity_limit*10)
+    # assume z is in [-0.3, 1.5], normalize to [-1,1]
+    observation[16] = (observation[16]-0.6)/0.9
+
+    return observation
