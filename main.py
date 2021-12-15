@@ -31,6 +31,9 @@ from datetime import datetime
 
 #import PIL
 
+'''
+Main with own implementation of PPO
+'''
 def main(args):
 
     best_score =-np.inf

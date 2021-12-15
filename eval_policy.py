@@ -2,11 +2,12 @@ import gym
 import torch
 
 from iiwa_env import IIWAEnv
+from iiwa_env_gym import IIWAEnvGym
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def eval_policy(policy, target_type, env='IIWA_Position', num_test_episodes=10, render=False, verbose=False):
-    test_env = IIWAEnv(render=render,target_type=target_type)
+    test_env = IIWAEnvGym(render=render,target_type=target_type)
     test_rewards = []
     for i in range(num_test_episodes):
         state = test_env.reset()
