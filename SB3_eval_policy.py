@@ -11,7 +11,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 def main(args):
     #torch.autograd.set_detect_anomaly(True)
 
-    env= Monitor(IIWAEnvGym(target_type = args.target_type, render =True))
+    env= Monitor(IIWAEnvGym(target_type = args.target_type, render =args.render))
 
     if args.model_path != None:
         if args.policy == "PPO":
@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('--policy',type =str,default = "PPO",help="[PPO, SAC]")
     parser.add_argument('--model_path',type=str,default=None,help="SB3 Model (.zip) you would like to keep training")
     parser.add_argument('--num_test_episodes', type=int, default=10, help='number of test episode')
+    parser.add_argument('--render',type=bool,default=True,help="SB3 Model (.zip) you would like to keep training")
 
     args = parser.parse_args()
 

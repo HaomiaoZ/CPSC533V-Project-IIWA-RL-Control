@@ -12,7 +12,7 @@ from stable_baselines3.common.callbacks import EvalCallback
 def main(args):
     #torch.autograd.set_detect_anomaly(True)
 
-    env= IIWAEnvGym(target_type = args.target_type)
+    env= Monitor(IIWAEnvGym(target_type = args.target_type))
 
     #eval_callback will save the best model
     eval_env = Monitor(IIWAEnvGym(target_type = args.target_type))

@@ -42,9 +42,9 @@ class IIWAEnvGym(gym.Env):
     if target_type=="Box":
         self.box_half_extents = np.array([0.075,0.2,0.2])
         self.box_center = np.array([0.6,0,0.4])
-        goal_range_visualization_shape_id = p.createVisualShape(p.GEOM_BOX, halfExtents = self.box_half_extents, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
-        goal_range_visualization_id =p.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
-
+        goal_range_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_BOX, halfExtents = self.box_half_extents, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
+        goal_range_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
+        self.physicsClient.resetBasePositionAndOrientation(goal_range_visualization_id, self.box_center, self.physicsClient.getQuaternionFromEuler([0,0,0]))
     # initalize robot
     startPos = [0,0,0]
     startOrientation = self.physicsClient.getQuaternionFromEuler([0,0,0])
@@ -66,8 +66,8 @@ class IIWAEnvGym(gym.Env):
     # IIWA 14 R820 model
     # TODO: figure out how to limit velocity in simulation, currently contorl mode will not consider that in pybullet (double check)
     # normalize the action space and observation space
-    self.action_space = spaces.Box(low=-1, high=1,shape = (self.joint_num,), dtype = np.float64)
-    self.observation_space = spaces.Box(low=-1, high=1, shape =(len(self.joint_position_limit[:,0])*2+7,),dtype =np.float64)
+    self.action_space = spaces.Box(low=-1, high=1,shape = (self.joint_num,), dtype = np.float32)
+    self.observation_space = spaces.Box(low=-1, high=1, shape =(len(self.joint_position_limit[:,0])*2+7,),dtype =np.float32)
     '''
     self.observation_space = spaces.Box(low=np.concatenate((self.joint_position_limit[:,0],-self.joint_velocity_limit*10,np.array([-1,-1,-1.5]),-np.ones(4))),\
          high=np.concatenate((self.joint_position_limit[:,1],self.joint_velocity_limit*10,np.array([1,1,1.5]),np.ones(4))),\
@@ -135,7 +135,7 @@ class IIWAEnvGym(gym.Env):
         while not valid_position:
             # randomize orientation by randomize euler angle
             target_eef_pos = np.random.uniform(self.box_center-self.box_half_extents,self.box_center+self.box_half_extents)
-            target_eef_ori = np.array(p.getQuaternionFromEuler(np.random.uniform(np.zeros(3),np.ones(3)*2*np.pi))).flatten()
+            target_eef_ori = np.array(self.physicsClient.getQuaternionFromEuler(np.random.uniform(np.zeros(3),np.ones(3)*2*np.pi))).flatten()
             valid_position = self.__is_valid__(target_eef_pos,target_eef_ori)
 
         self.target_eef_positions = target_eef_pos
@@ -166,13 +166,13 @@ class IIWAEnvGym(gym.Env):
     elif mode=="rgb_array":
         width =1920
         height =1080
-        view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0],
+        view_matrix = self.physicsClient.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0],
                                                                 distance=2.4,
                                                                 yaw=130,
                                                                 pitch=-35,
                                                                 roll=0,
                                                                 upAxisIndex=2)
-        proj_matrix = p.computeProjectionMatrixFOV(fov=60,
+        proj_matrix = self.physicsClient.computeProjectionMatrixFOV(fov=60,
                                                     aspect=float(width) /height,
                                                     nearVal=0.1,
                                                     farVal=100.0)
@@ -237,3 +237,11 @@ class IIWAEnvGym(gym.Env):
     observation[16] = (observation[16]-0.6)/0.9
 
     return observation
+
+  #helper function for PD controller to calculate action
+  def getPhysicsClient(self):
+      return self.physicsClient
+  def getIIWAId(self):
+      return self.iiwaId
+  def getJointPositionLimit(self):
+      return self.joint_position_limit[:,1]
