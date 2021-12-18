@@ -54,7 +54,7 @@ def main(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--target_type', type=str, default=None, help='[Point, Box, Random]')
+    parser.add_argument('--target_type', type=str, default=None, help='[Point, Box, Box_pos,  Random]')
     parser.add_argument('--epochs', type=int, default=4000, help='Number of epochs/episodes to run')
     parser.add_argument('--policy',type =str,default = "PPO",help="[PPO, SAC]")
     parser.add_argument('--keep_training_model_path',type=str,default=None,help="SB3 Model (.zip) you would like to keep training")

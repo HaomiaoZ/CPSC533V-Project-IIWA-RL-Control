@@ -39,7 +39,7 @@ class IIWAEnvGym(gym.Env):
     self.goal_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_visualization_shape_id)
 
     # since no need to move the range viz, don't add to field
-    if target_type=="Box":
+    if self.target_type=="Box" or self.target_type=="Box_pos" :
         self.box_half_extents = np.array([0.075,0.2,0.2])
         self.box_center = np.array([0.6,0,0.4])
         goal_range_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_BOX, halfExtents = self.box_half_extents, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
@@ -88,6 +88,9 @@ class IIWAEnvGym(gym.Env):
     reward =-( np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))+\
     np.linalg.norm(np.array(self.physicsClient.getDifferenceQuaternion(self.target_eef_orientations,current_eef_state[5]))-np.array([0,0,0,1])) )
     
+    if self.target_type=="Box_pos":
+        reward = -np.linalg.norm(np.array(self.target_eef_positions)-np.array(current_eef_state[4]))
+    
     self.steps+=1
     '''
     # test termination condition
@@ -130,7 +133,7 @@ class IIWAEnvGym(gym.Env):
         #randomly initialize around 0 for all joints
         initial_joint_pos = np.random.uniform(np.deg2rad(-np.ones(self.joint_num)*5),np.deg2rad(np.ones(self.joint_num)*5))
     
-    elif self.target_type=="Box":
+    elif self.target_type=="Box" or self.target_type=="Box_pos":
         valid_position=False
         while not valid_position:
             # randomize orientation by randomize euler angle
