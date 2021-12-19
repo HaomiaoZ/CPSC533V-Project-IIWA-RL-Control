@@ -45,6 +45,11 @@ class IIWAEnvGym(gym.Env):
         goal_range_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_BOX, halfExtents = self.box_half_extents, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
         goal_range_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
         self.physicsClient.resetBasePositionAndOrientation(goal_range_visualization_id, self.box_center, self.physicsClient.getQuaternionFromEuler([0,0,0]))
+    # since no need to move the range viz, don't add to field
+    if self.target_type=="Random" :
+        goal_range_visualization_shape_id = self.physicsClient.createVisualShape(p.GEOM_SPHERE, radius= 0.82, rgbaColor =[1,0,0,0.2], specularColor=[1, 1, 1])
+        goal_range_visualization_id =self.physicsClient.createMultiBody(baseVisualShapeIndex=goal_range_visualization_shape_id)
+        self.physicsClient.resetBasePositionAndOrientation(goal_range_visualization_id, [0, 0, 0.36], self.physicsClient.getQuaternionFromEuler([0,0,0]))
     # initalize robot
     startPos = [0,0,0]
     startOrientation = self.physicsClient.getQuaternionFromEuler([0,0,0])
@@ -169,10 +174,10 @@ class IIWAEnvGym(gym.Env):
     elif mode=="rgb_array":
         width =1920
         height =1080
-        view_matrix = self.physicsClient.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0],
-                                                                distance=2.4,
-                                                                yaw=130,
-                                                                pitch=-35,
+        view_matrix = self.physicsClient.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0.4],
+                                                                distance=2,
+                                                                yaw=125,
+                                                                pitch=-15,
                                                                 roll=0,
                                                                 upAxisIndex=2)
         proj_matrix = self.physicsClient.computeProjectionMatrixFOV(fov=60,

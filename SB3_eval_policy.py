@@ -1,6 +1,6 @@
 import gym
 import torch
-
+import numpy as np
 
 from stable_baselines3 import PPO
 from stable_baselines3 import SAC
@@ -8,7 +8,7 @@ from iiwa_env_gym import IIWAEnvGym
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.evaluation import evaluate_policy
 
-def main(args):
+def SB3_eval_policy(args):
     #torch.autograd.set_detect_anomaly(True)
 
     env= Monitor(IIWAEnvGym(target_type = args.target_type, render =args.render))
@@ -23,8 +23,10 @@ def main(args):
     
     rewards = evaluate_policy(model,env,n_eval_episodes=args.num_test_episodes,return_episode_rewards=True)
     env.close()
-    print('Average Reward of {:d} episode is {:.1f}'.format(args.num_test_episodes, sum(rewards[0])/len(rewards[0])))
-    print('Average Episode Length is: {:.1f}'.format(sum(rewards[1])/len(rewards[1])))
+    print('Average Reward of {:d} episode is {:.1f}, STD is: {:.1f}'.format(args.num_test_episodes, sum(rewards[0])/len(rewards[0]), np.std(rewards[0])))
+    print('Average Episode Length is: {:.1f}, STD is: {:.1f}'.format(sum(rewards[1])/len(rewards[1]), np.std(rewards[1])))
+    # return reward and episode length in [0] and [1]
+    return rewards
 
 
 
@@ -39,4 +41,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args)
+    SB3_eval_policy(args)

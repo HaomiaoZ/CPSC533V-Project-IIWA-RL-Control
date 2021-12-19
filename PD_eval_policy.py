@@ -53,8 +53,8 @@ def PD_eval_policy(env, render, target_type,  num_test_episodes,verbose=True ):
         test_rewards.append(episode_total_reward)
         test_episodes_length.append(episode_length)
     test_env.close()
-    print('Average Reward of {:d} episode is {:.1f}'.format(args.num_test_episodes, sum(test_rewards)/len(test_rewards)))
-    print('Average Episode Length is: {:.1f}'.format(sum(test_episodes_length)/len(test_episodes_length)))
+    print('Average Reward of {:d} episode is {:.1f}, STD is: {:.1f}'.format(args.num_test_episodes, sum(test_rewards)/len(test_rewards), np.std(test_rewards)))
+    print('Average Episode Length is: {:.1f}, STD is: {:.1f}'.format(sum(test_episodes_length)/len(test_episodes_length), np.std(test_episodes_length)))
     return sum(test_rewards)/num_test_episodes
 
 
