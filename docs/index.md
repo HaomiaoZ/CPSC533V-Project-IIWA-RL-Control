@@ -13,21 +13,21 @@ _**Haomiao Zhang**, University of British Columbia_
 **Full report can be found [here]({{ site.baseurl}}/Report.pdf)**
 
 
-### Point Environment Demonstration
+Point Target Demonstration
 
 <p align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/waMvO225mdo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </p>
 
 
-### Box Environment Demonstration
+Box Target Demonstration
 
 <p align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-9B8OTWW_xc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </p>
 
 
-### Random Environment Demonstration
+Random Target Demonstration
 
 <p align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/nyl5V4h27K8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
