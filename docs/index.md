@@ -2,7 +2,7 @@
 
 _**Haomiao Zhang**, University of British Columbia_
 
-<p align="center">
+<p align="left">
   <img src="Point_Env.JPG" width="32%" />
   <img src="Box_Env.JPG" width="32%" /> 
   <img src="Random_Env.JPG" width="32%" />
