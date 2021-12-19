@@ -1,37 +1,5 @@
-## Welcome to GitHub Pages
+## CPSC 533V Project: Learning to Control End Effector Poses with PPO and SAC
 
-You can use the [editor on GitHub](https://github.com/HaomiaoZ/CPSC533V_Project_IIWA_RL_Control/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+_**Haomiao Zhang**, University of British Columbia_
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/HaomiaoZ/CPSC533V_Project_IIWA_RL_Control/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+End effector pose control is crucial in the industriesfor various tasks. To control end effector poses, inverse kinematicsusually  would  be  applied  to  decompose  poses  to  joint  positionsfor joint level control. While inverse kinematics is effective whenthe joint dimension low, it becomes difficult and time consumingWith  the  increase  of  joint  dimension.  Fortunately,  deep  rein-forcement  learning  (DRL)  has  demonstrated  its  capability  inperforming  motion  control  with  high  joint  dimension.  In  thispaper, controllers are learned using PPO and SAC to control theend effector poses throuhgh inverse kinematics and joint positioncontrol. Training and evaluation are performed on a IIWA robotarm  in  PyBullet  simulation.  With  the  given  training  time  andhyperparameters, the DRL controllers perform statistically betterthan  PD  controller  when  reaching  the  same  target,  but  theperformance  decreases  when  trying  to  reach  different  targetswithin  the  the  work  envelope.
