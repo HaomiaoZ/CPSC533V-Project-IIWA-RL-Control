@@ -1,2 +1,2 @@
 # CPSC533V_Project
-Course Project for CPSC 533V
+CPSC 533V 2021 W1 Course Project
