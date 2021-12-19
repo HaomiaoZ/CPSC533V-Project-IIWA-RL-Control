@@ -8,10 +8,10 @@ _**Haomiao Zhang**, University of British Columbia_
 
 ![PyBullet Simulation](Point_Env.JPG)
 
-<p align="center">
-  <img src="Point_Env.JPG" width="300" />
-  <img src="Box_Env.JPG" width="300" /> 
-  <img src="Random_Env.JPG" width="300" />
+<p align="middle">
+  <img src="Point_Env.JPG" width="30%" />
+  <img src="Box_Env.JPG" width="30%" /> 
+  <img src="Random_Env.JPG" width="30%" />
 </p>
 
 Try youtube video
