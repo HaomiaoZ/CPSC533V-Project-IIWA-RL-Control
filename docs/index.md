@@ -6,7 +6,7 @@ _**Haomiao Zhang**, University of British Columbia_
 
 **Full report can be found [Here]({{ site.baseurl}}/Report.pdf)**
 
-
+![PyBullet Simulation](Point_Env.JPG)
 Try youtube video
 
 <p align="center">
