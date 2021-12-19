@@ -1,3 +1,4 @@
 theme: jekyll-theme-cayman
 title: Learning to Control End Effector Poses with PPO and SAC
 description: CPSC 533V 2021 W1 Course Project
+baseurl: /CPSC533V-Project-IIWA-RL-Control
