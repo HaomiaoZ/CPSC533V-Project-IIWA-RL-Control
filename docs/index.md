@@ -1,4 +1,4 @@
-## CPSC 533V Project: Learning to Control End Effector Poses with PPO and SAC
+## Learning to Control End Effector Poses with PPO and SAC
 
 _**Haomiao Zhang**, University of British Columbia_
 
