@@ -66,10 +66,10 @@ class IIWAEnv():
         self.joint_num = self.physicsClient.getNumJoints(self.iiwaId)
         
         # getting lower and upper joint limit
-        self.joint_limit =np.zeros((self.joint_num,2))
+        self.joint_position_limit =np.zeros((self.joint_num,2))
         for i in range(self.joint_num):
             joint_info = self.physicsClient.getJointInfo(self.iiwaId,i)
-            self.joint_limit[i]= np.array(joint_info[8:10])
+            self.joint_position_limit[i]= np.array(joint_info[8:10])
 
         # 10s of simulation
         self.episode_length =self.Hz*10
@@ -81,7 +81,7 @@ class IIWAEnv():
     def reset(self):
         if self.target_type=="Random":
             # randomly setting a valid target
-            target_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
+            target_joint_pos = np.random.uniform(self.joint_position_limit[:,0],self.joint_position_limit[:,1])
 
             self.setPositionStates(target_joint_pos)
             
@@ -92,7 +92,7 @@ class IIWAEnv():
             self.target_eef_orientations = np.array(target_eef_states[5])
 
             #randomly initialize robot to a valid state
-            initial_joint_pos = np.random.uniform(self.joint_limit[:,0],self.joint_limit[:,1])
+            initial_joint_pos = np.random.uniform(self.joint_position_limit[:,0],self.joint_position_limit[:,1])
             
         elif self.target_type=="Point":
             # find a fixed target position
@@ -133,7 +133,8 @@ class IIWAEnv():
     # get the states of iiwa joint positions and velocities
     def getStates(self):
         joint_states= self.physicsClient.getJointStates(self.iiwaId,jointIndices=[i for i in range(self.joint_num)])
-        state_vec = np.array([joint_state[0:2] for joint_state in joint_states]).flatten()
+        state_vec = np.concatenate((np.array([joint_state[0] for joint_state in joint_states]).flatten(),\
+            np.array([joint_state[1] for joint_state in joint_states]).flatten()))
         return state_vec
     
     # reset joint position state to given vectors, velocities are set to 0
@@ -151,8 +152,8 @@ class IIWAEnv():
                 [0, 0, 0, 0.5 * np.pi, 0, -np.pi * 0.5 * 0.66, 0])
         
         cur_joint_states = self.getStates()
-        # getting every second element in state, which is current position
-        cur_joint_pos = cur_joint_states[::2]
+        # first 7 elements are current position
+        cur_joint_pos = cur_joint_states[0:8]
 
         # set to target position and calculate error
         self.setPositionStates(target_joint_pos)
@@ -211,7 +212,7 @@ class IIWAEnv():
             if abs(reward)<abs(self.pose_error_threshold):
                 reward =500
 
-        return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done
+        return np.concatenate((state_vec,self.target_eef_positions, self.target_eef_orientations)), reward, self.done,{}
 
     def close(self):
         self.physicsClient.disconnect()

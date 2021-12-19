@@ -3,6 +3,7 @@ import time
 import pybullet_data
 import numpy as np
 from iiwa_env import IIWAEnv
+from iiwa_env_gym import IIWAEnvGym
 from eval_policy import eval_policy
 
 import time
@@ -30,12 +31,16 @@ from datetime import datetime
 
 #import PIL
 
+'''
+Main with own implementation of PPO
+'''
 def main(args):
 
     best_score =-np.inf
     
     # create environment 
-    env = IIWAEnv(target_type=args.target_type)
+    #env = IIWAEnv(target_type=args.target_type)
+    env = IIWAEnvGym(target_type=args.target_type)
     obs_dim = 21
     discrete =False
     act_dim = 7
@@ -127,7 +132,8 @@ def main(args):
         for t in range(steps_per_epoch):
             a, v, logp = ac.step(torch.as_tensor(o, dtype=torch.float32).to(args.device))
 
-            next_o, r, d = env.step(a)
+            next_o, r, d,_ = env.step(a)
+            
             ep_ret += r
             ep_len += 1
 
