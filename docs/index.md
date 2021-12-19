@@ -6,12 +6,10 @@ _**Haomiao Zhang**, University of British Columbia_
 
 **Full report can be found [Here]({{ site.baseurl}}/Report.pdf)**
 
-![PyBullet Simulation](Point_Env.JPG)
-
-<p align="middle">
-  <img src="Point_Env.JPG" width="30%" />
-  <img src="Box_Env.JPG" width="30%" /> 
-  <img src="Random_Env.JPG" width="30%" />
+<p align="center">
+  <img src="Point_Env.JPG" width="32%" />
+  <img src="Box_Env.JPG" width="32%" /> 
+  <img src="Random_Env.JPG" width="32%" />
 </p>
 
 Try youtube video
